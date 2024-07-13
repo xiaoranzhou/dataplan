@@ -74,7 +74,7 @@
     var punctualReplaced = false;
     var dmpEle;
     var convertedEle;
-
+    var classicMode = true;
     var initialed = false; // set the initialed status to false
     const JSONString = '{"dmp":{"title":"DMP of Example Project","contact":{"contact_id":{"identifier":"http://orcid.org/0000-0000-0000-0000","type":"orcid"},"mbox":"DMP of email","name":"DMP of Example User"},"created":"2024-06-19T16:45:09.7","dmp_id":{"identifier":"https://doi.org/10.0000/00.0.1234","type":"doi"},"dataset":[{"dataset_id":{"identifier":"https://doi.org/10.0000/00.0.5678","type":"doi"},"title":"Placeholder dataset","personal_data":"unknown","sensitive_data":"unknown"}],"ethical_issues_exist":"unknown","language":"eng","modified":"2024-07-09T10:53:50.4","submission":"2024-07-09T10:53:50.4","version":"1.0"},"replace":{"$_PROJECTNAME":"Example Project","$_STUDYOBJECT":"Example Topic","$_PROJECTAIM":"Example Aim","$_DMPVERSION":"1.0","$_USERNAME":"Example User","$_EMAIL":"email","$_DATAOFFICER":"Example data officer name","$_DATAUTILITY":"Industry, politicians and students can also use the data for different purposes.","$_UPDATEMONTH":"Example Month","$_PREVIOUSPROJECTS":"Previous Project Name","$_PROPRIETARY":"Proprietary Software","$_RAWDATA":"???","$_DERIVEDDATA":"???","$_FUNDINGPROGRAMME":"action number or funding programme name","$_CREATIONDATE":"xxxx-xx-xx","$_MODIFICATIONDATE":"xxxx-xx-xx","$_OTHERSTANDARDINPUT":"other standards","$_OTHEREP":"Other repositories","$_PARTNERS":"partner name"},"checkbox":{"checkbox_1":{"checked":["check_dataplant"],"unchecked":["check_protect","check_update","check_previousprojects","check_industry","check_proprietary","check_partners","check_eu"]},"checkbox_2":{"checked":["check_genetic","check_genomic","check_cloned-dna","check_rnaseq","check_metabolomic","check_proteomic","check_phenotypic","check_targeted","check_image","check_models","check_code","check_excel"],"unchecked":["check_transcriptomic"]},"checkbox_3":{"checked":["check_miappe","check_minseqe","check_otherstandards","check_dublincore","check_marc21","check_early","check_ipissue","check_vvisualization"],"unchecked":["check_mixs","check_migseu","check_migsorg","check_mims","check_mimarksspecimen","check_mimarkssurvey","check_misag","check_mimag","check_miame","check_mmiamet","check_rembi","check_miape","check_mimix","check_beforepublication","check_endofproject","check_embargo","check_request","check_nfdi","check_french","check_eosc"]},"checkbox_5":{"checked":[],"unchecked":["check_genbank","check_sra","check_geo","check_ena","check_arrayexpress","check_metabolights","check_pride","check_bioimage","check_idr","check_edal","check_metaworkbench","check_intact","check_pdb","check_chebi","check_otherep"]}},"update":{"timeline":[],"storage":[{"answer":[],"name":[]},{"answer":[],"name":[]},{"answer":[],"name":[]},{"answer":[],"name":[]},{"answer":[],"name":[]},{"answer":[],"name":[]}]}}';
     const templateJSON = '{"replace":{"$_PROJECTNAME":"Example Project","$_STUDYOBJECT":"Example Topic","$_PROJECTAIM":"Example Aim","$_DMPVERSION":"0.0","$_USERNAME":"Example User","$_EMAIL":"email","$_DATAOFFICER":"Example data officer name","$_RAWDATA":"???","$_DERIVEDDATA":"???","$_FUNDINGPROGRAMME":"action number or funding programme name","$_CREATIONDATE":"xxxx-xx-xx","$_MODIFICATIONDATE":"xxxx-xx-xx"}}';
@@ -327,7 +327,7 @@
             callback(name);
         }else{
             frame.innerHTML = convertedEle;
-            allCheckbox();
+            allCheckbox(), htmlFind_replace();
         }
         doc_name = name; // overwrite global variable doc_name
 
@@ -537,6 +537,26 @@
 
     }
 
+
+    function htmlFind_replace(){
+        for (const [key, value] of Object.entries( saved_a["replace"])){
+            eleName = key.split("_")[1]+"-to-";
+            document.getElementsByName(eleName).forEach(e=>{e.innerText=value});
+            let unfinished = compare_replace(temp_a, saved_a);
+            let p_bar = document.getElementById("p-bar");
+
+        let percentage = (unfinished[2] + unfinished[3]) / (unfinished[0] + unfinished[1]) * 100;
+        if (percentage === 100 && old_percentage != 100) {
+            toast_list[6].show();
+        }
+        old_percentage = percentage;
+        p_bar.style.setProperty("width", Math.ceil(percentage) + "%");
+        p_bar.innerHTML = Math.ceil(percentage) + "%";
+        p_bar.setAttribute("aria-valuenow", Math.ceil(percentage));
+            console.log(key+" " + value)
+            }
+
+    }
     function onchange_replace1(child) {
         const before = child.name;
         const after = child.value;
@@ -670,68 +690,39 @@
         let checkboxes = document.querySelectorAll(".form-check-input");
         checkboxes.forEach(e => {
 
-            e.setAttribute("onfocusin", 'const elem1 = document.querySelectorAll("."+this.id); elem1.forEach(e =>{ e.classList.add("border-highlight"); if(e.querySelector("li")!=null){e.querySelector("li").classList.add("border-highlight")}  }); set_scrollbar_marker( scroll_marker,elem1 )');
-            e.setAttribute("onfocusout", 'const elem2 = document.querySelectorAll("."+this.id);elem2.forEach(e => {e.classList.remove("border-highlight"); if(e.querySelector("li")!=null){e.querySelector("li").classList.remove("border-highlight")}}); let remove = Array.from(document.getElementsByName("scroll-bar-span")); remove.forEach(e => {e.remove()})');
+            e.setAttribute("onfocusin", 'checkboxOnfocusin(this)');
+            e.setAttribute("onfocusout", 'checkboxOnfocusout(this)');
             e.setAttribute("onmouseover", 'this.focus()');
             e.setAttribute("onclick",
-                ' this.blur(); setTimeout(()=> {sc1(this.id)}, "0");  setTimeout(()=> {;this.focus()}, "0")');
+                ' checkboxOnfocusout(this); setTimeout(()=> {sc1(this.id)}, "0"); setTimeout(()=> { checkboxOnfocusin(this)}, "500")');
             e.setAttribute("name", e.id);
             
         }
 
         );
         
-        checkboxSelection();
-        let allchecked = [];
+        checkboxSelection(),
+        allCheckbox();
         
-        
-        
-        setTimeout(e=>{
-            //document.querySelectorAll(".checkboxConverted").forEach(e=>{e.classList.add("d-none")});
-            for (const [index, boxes] of Object.entries(saved_a["checkbox"])){
-            allchecked.push(...boxes["checked"]);
-            
-        }
-        for (const check of allchecked){
-            singleCheckbox(check.toLowerCase());
-        }
-
-        
-
-        let allunchecked = [];
-        for (const [index, boxes] of Object.entries(saved_a["checkbox"])){
-            allunchecked.push(...boxes["unchecked"]);
-            
-        }
-        allunchecked= allunchecked.map(v => v.toLowerCase());
-        for (const uncheck of allunchecked){
-            //singleCheckbox(check.toLowerCase());
-            const checkboxContent = document.querySelectorAll("."+uncheck);
-            checkboxContent.forEach(
-            e=>{
-                const operator = e.dataset.operator.split("|");
-                const found = operator.slice(0,-1).every(e=> allunchecked.includes(e));
-                if (operator.length >= 2){
-                   
-               if(found){
-                e.classList.add("d-none");
-               }else{
-                e.classList.remove("d-none");
-               }
-             }else{
-                e.classList.remove("d-none");
-             }
-            }
-        ) ;
-        }
-
-        }, "0")
         
         convertedEle = document.getElementById("doc3").innerHTML;
         
         // e.setAttribute("onchange", "const col1 = new bootstrap.Collapse('."+id+"Repo', {toggle: false});if(this.checked == true){col1.show();}else{col1.hide();}");
     }
+    function checkboxOnfocusin(ele){
+        const elem1 = document.querySelectorAll("."+ele.id); 
+        elem1.forEach(e =>{ e.classList.add("border-highlight"); 
+        if(e.querySelector("li")!=null){e.querySelector("li").classList.add("border-highlight")}  });
+         set_scrollbar_marker( scroll_marker,elem1 )
+    }
 
+    function checkboxOnfocusout(ele){
+        const elem2 = document.querySelectorAll("."+ele.id);
+        elem2.forEach(e => {e.classList.remove("border-highlight"); 
+        if(e.querySelector("li")!=null){e.querySelector("li").classList.remove("border-highlight")}}); 
+        let remove = Array.from(document.getElementsByName("scroll-bar-span")); 
+        remove.forEach(e => {e.remove()})
+    }
 
     function checkboxSelection(){
 
@@ -1520,7 +1511,7 @@
         const config = { attributes: true, childList: false, subtree: false };
 
         var classicSwitch = document.getElementById("classicModeBtn");
-        classicSwitch.checked= false;
+        classicSwitch.checked= true;
         classicSwitch.addEventListener('change', function () {
                 if (classicSwitch.checked) {
                     classicMode = classicSwitch.checked == true;
@@ -4564,7 +4555,7 @@ END:VEVENT`;
             cursor: 'column-resize',
             gutterSize: 5,
         });	
-        var classicMode = false;
+
     </script>
 </body>
 <script src="js/cloud.min2106.js" charset="utf-8"> </script>
