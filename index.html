@@ -1043,7 +1043,7 @@
     function remove_warning(element) {
 
         let warning_no = element.value;
-        let warning = document.getElementById(warning_no);
+        let warning = document.getElementById(warning_no).parentElement;
         try {
             warning.remove();
         } catch (error) {
@@ -1066,18 +1066,49 @@
     }
 
     function issue_warning_show() {
-        const all_warning_alert = document.querySelectorAll('[name="_warning_notification"]');
-        const all_warning_text = document.querySelectorAll('[name="warning_elements"]');
-        all_warning_alert.forEach((element) => { element.classList.remove("d-none") });
+        const all_warning_alert = document.querySelectorAll('[name="issueWarningContent"]');
+        const warning_text_location = document.getElementById("warningText");
+        warning_text_location.innerHTML = "";
+        var warning_notification_text;
+        if (all_warning_alert.length >0){
+            all_warning_alert.forEach(
+            e=>{
+
+
+                
+                const warning_no ="warning_number" +  e.dataset.id;
+
+
+                let html1 = '<div class="alert alert-danger" role="alert" name="_warning_notification"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>' +  e.dataset.text + '<button type="button" value = "' + warning_no + '" class="btn btn-primary"  onclick ="go_to(this)" >click to check what caused the warning</button><button type="button" value = "' + warning_no + '" class=" btn-close" data-bs-dismiss="alert" aria-label="Close" onclick=remove_warning(this) ></button> </div>';
+
+                
+                warning_text_location.innerHTML += html1  ;
+                
+
+
+
+
+            }
+        )
+        }
+       
+        
+
+        //all_warning_alert.forEach((element) => { element.classList.remove("d-none") });
         //all_warning_text.forEach( (element) => { element.classList.remove("d-none")}  );
-        document.getElementById("warningText").scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(
+            e=>{
+                document.getElementById("warningText").scrollIntoView({ behavior: "smooth", block: "center" });
+            }, "200"
+        )
+       
     }
 
 
     function issue_warning() {
 
         const warning_notification = document.getElementsByName("_warning_notification");
-        const warning_text_location = document.getElementById("warningText");
+        
         const selection = window.getSelection();
         selection.removeAllRanges();
         let text;
@@ -1108,23 +1139,14 @@
                 text = text_range.toString();
                 //verbose console.log("full range issuewarning text is" + full_range.toString());
                 full_range.deleteContents();
-
-                let newText = document.createElement("warning_number" + warning_number);
-
+                
+                let newText = document.createElement("div");
+                newText.setAttribute("name" , "issueWarningContent");
+                newText.setAttribute("data-id" , warning_number);
+                newText.setAttribute("data-text" , text);
                 newText.innerHTML = '<span id= "warning_number' + warning_number + '" name="warning_elements" class = "text-warning"><--pay attention to the sentence before because' + text + '</span>';
                 full_range.insertNode(newText);
-
-                const warning_no = "warning_number" + warning_number;
-
-                let div = document.createElement('div');
-                div.setAttribute("class", "alert alert-danger d-none");
-                div.setAttribute("role", "alert");
-                div.setAttribute("name", "_warning_notification");
-
-                let html1 = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>' + text + '<button type="button" value = "' + warning_no + '" class="btn btn-primary"  onclick ="go_to(this)" >click to check what caused the warning</button><button type="button" value = "' + warning_no + '" class=" btn-close" data-bs-dismiss="alert" aria-label="Close" onclick=remove_warning(this) ></button>';
-
-                div.innerHTML = html1;
-                warning_text_location.appendChild(div);
+                
                 ns = window.find("#issuewarning", aWrapAround = 1);
                 warning_number = warning_number + 1;
             }
@@ -2329,7 +2351,7 @@ END:VEVENT`;
                 issue_reminder = " ";
                 break;
             default:
-                issue_reminder = "There are " + String(issue_n) + " issues not resolved." + ' If you are aware of all the issues and you want to remove all the warnings, please click:  <button type="button" class="badge btn-secondary"  onclick="remove_all_warnings(), toast_list[6].show()" > remove all the warnings</button>';
+                issue_reminder = "There are " + String(issue_n) + " issues not resolved." + ' If you are aware of all the issues and you want to remove all the warnings, please click:  <button type="button" class="badge btn-primary"  onclick="remove_all_warnings(), toast_list[6].show()" > remove all the warnings</button>';
 
         }
         reminders = [{
